@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#f7f5ff">
+  <title>GLS — Guest Table Sorter</title>
+  <style>
+    :root{--ink:#24213d;--muted:#77748f;--purple:#6654d9;--purple2:#4e3bbd;--green:#157957;--line:#ebe8f5;--paper:#fff;--bg:#f7f5ff;--mint:#e3f8ee;--coral:#fff0e7}
+    *{box-sizing:border-box}body{margin:0;color:var(--ink);font:15px/1.5 ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif;background:radial-gradient(ellipse at 5% 5%,#e8dfff 0,transparent 28%),radial-gradient(ellipse at 100% 20%,#dff8ed 0,transparent 27%),var(--bg)}
+    button,input{font:inherit}button{cursor:pointer}.shell{max-width:1100px;margin:auto;padding:28px 22px 60px}.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:32px}.brand{display:flex;align-items:center;gap:12px}.mark{width:52px;height:52px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(145deg,#8171f0,#5542c9);color:white;font-weight:950;font-size:20px;box-shadow:0 8px 20px #6654d933}.brand strong{display:block;font-size:22px;letter-spacing:.03em;line-height:1.1}.brand small{color:var(--muted)}.privacy{background:#f0fff7;border:1px solid #d4efdf;color:#287456;border-radius:999px;padding:8px 13px;font-size:12px;font-weight:750}
+    .hero{display:grid;grid-template-columns:1fr auto;align-items:center;gap:20px;margin-bottom:24px}.tag{display:inline-block;border:1px solid #e6e0ff;background:#fff;color:var(--purple2);padding:6px 12px;border-radius:999px;font-weight:850;font-size:11px;letter-spacing:.04em}h1{font-size:clamp(36px,6vw,58px);line-height:1.02;letter-spacing:-.045em;margin:14px 0 12px}h1 span{color:var(--purple)}.intro{max-width:620px;color:var(--muted);font-size:16px;margin:0}.art{font-size:74px;filter:drop-shadow(0 9px 6px #5845cb19);padding:8px 24px}
+    .card{background:var(--paper);border:1px solid #eeebf7;border-radius:22px;box-shadow:0 14px 40px #34266b0a}.upload{padding:10px}.drop{min-height:190px;padding:28px 18px;text-align:center;border:2px dashed #c9bfed;border-radius:16px;background:linear-gradient(135deg,#fbfaff,#f5fffa);transition:.18s}.drop.over{border-color:var(--purple);background:#f0edff;transform:scale(.995)}.upload-icon{width:46px;height:46px;margin:0 auto 8px;display:grid;place-items:center;background:#eeeaff;color:var(--purple);border-radius:15px;font-size:24px}.upload h2{font-size:19px;margin:0}.upload p{color:var(--muted);margin:4px 0 14px}.btn{border:0;border-radius:12px;padding:11px 17px;font-weight:850;display:inline-flex;align-items:center;gap:8px;justify-content:center;transition:.15s}.btn:hover{transform:translateY(-1px)}.primary{color:#fff;background:var(--purple);box-shadow:0 7px 14px #6654d933}.primary:hover{background:var(--purple2)}.export{color:#fff;background:var(--green)}.export:disabled{opacity:.45;cursor:not-allowed;transform:none}#files{display:none}.hint{font-size:11px;color:#89869d;margin-top:11px}.message{min-height:26px;margin:10px 4px 16px;color:#287455;font-size:13px;font-weight:700}.message.error{color:#a34444}
+    .list-head{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:21px 23px 13px}.title{display:flex;gap:12px;align-items:center}.list-icon{width:42px;height:42px;border-radius:14px;background:var(--coral);display:grid;place-items:center;font-size:21px}.title h2{font-size:22px;margin:0}.title small{display:block;color:var(--muted);margin-top:2px}.summary{padding:0 23px 15px;color:var(--muted);font-size:12px}.summary b{color:var(--ink)}.table-wrap{border-top:1px solid var(--line);overflow:auto}table{border-collapse:collapse;width:100%;min-width:620px}thead{background:#fbfaff}th{padding:12px 15px;text-align:left;color:#77748e;font-size:10px;letter-spacing:.09em;text-transform:uppercase}td{padding:10px 15px;border-top:1px solid #f0eef6;vertical-align:middle}tbody tr:hover{background:#fdfcff}td input{width:100%;min-width:110px;border:1px solid transparent;border-radius:9px;background:transparent;padding:8px;color:var(--ink);outline:none}td input:hover,td input:focus{border-color:#d9d2f5;background:white}.table-cell{font-weight:750}.remove{background:transparent;border:0;color:#a16e79;font-size:19px;border-radius:8px;padding:3px 9px}.remove:hover{background:#fff0f0;color:#bb4343}.empty{text-align:center;color:#89869d;padding:36px 12px}.foot{padding:13px 22px 18px;color:var(--muted);font-size:11px}.foot strong{color:#5545be}.actions{display:flex;align-items:center;gap:8px}.clear{color:#746e91;background:#f3f0ff}.footer-note{margin-top:14px;color:#8b879e;font-size:11px;text-align:center}
+    @media(max-width:680px){.shell{padding:18px 13px 40px}.hero{grid-template-columns:1fr}.art{display:none}.privacy{font-size:0;padding:8px}.list-head{padding:17px 14px 12px;align-items:flex-start}.list-head .btn{padding:10px 11px;font-size:12px}.summary{padding:0 14px 13px}.foot{padding:12px 14px 16px}}
+  </style>
+</head>
+<body>
+<main class="shell">
+  <header class="top">
+    <div class="brand"><div class="mark" aria-label="GLS logo">GLS</div><div><strong>GLS</strong><small>Guest Table Sorter</small></div></div>
+    <div class="privacy">🔒 Files are processed in your browser</div>
+  </header>
+  <section class="hero">
+    <div><span class="tag">LESS LIST WORK, MORE CELEBRATION</span><h1>Guests and tables,<br><span>neatly sorted.</span></h1><p class="intro">Choose a guest list and GLS will look for names and table assignments, organise them into columns, and prepare an Excel file for you.</p></div>
+    <div class="art" aria-hidden="true">🎉📋</div>
+  </section>
+  <section class="card upload" aria-label="Upload guest list"><div class="drop" id="drop">
+    <div class="upload-icon">⇧</div><h2>Bring your guest list</h2><p>Drop a file here or choose one from your device</p>
+    <button class="btn primary" id="choose" type="button">Choose files ↗</button>
+    <input id="files" type="file" accept=".xlsx,.xls,.pdf,.docx,.csv,.txt" multiple>
+    <div class="hint">Excel (.xlsx, .xls) · PDF · Word (.docx) · CSV · TXT &nbsp;•&nbsp; Processed on this device</div>
+  </div></section>
+  <div class="message" id="message" role="status" aria-live="polite"></div>
+  <section class="card">
+    <div class="list-head"><div class="title"><div class="list-icon">🗒️</div><div><h2>Your table list</h2><small>Check the extracted names and table numbers before exporting.</small></div></div><div class="actions"><button class="btn clear" id="clear" type="button" disabled>Clear list</button><button class="btn export" id="export" type="button" disabled>⇩ Export to Excel</button></div></div>
+    <div class="summary" id="summary"><b>0 guests</b> · Choose a file to begin</div>
+    <div class="table-wrap"><table><thead><tr><th>Guest name</th><th>Table number</th><th></th></tr></thead><tbody id="rows"><tr><td class="empty" colspan="3">Your extracted guest list will appear here. 🎊</td></tr></tbody></table></div>
+    <div class="foot"><strong>Tip:</strong> Best results come from files with clear “Name” and “Table” column headings. Table assignments are kept as text, so values such as “Top Table” or “12A” are preserved.</div>
+  </section>
+  <div class="footer-note">For Word files, use .docx format. Older .doc files can be opened in Word and saved as .docx.</div>
+</main>
+<script type="module">
+  import * as XLSX from "https://esm.sh/xlsx@0.18.5";
+  import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs";
+  import mammoth from "https://esm.sh/mammoth@1.9.0";
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
+  const input = document.querySelector("#files");
+  const drop = document.querySelector("#drop");
+  const message = document.querySelector("#message");
+  const body = document.querySelector("#rows");
+  const summary = document.querySelector("#summary");
+  const exportButton = document.querySelector("#export");
+  const clearButton = document.querySelector("#clear");
+  let guests = [];
+
+  const clean = value => String(value ?? "").replace(/\s+/g, " ").trim();
+  const headerName = text => /^(guest|guests|name|full\s*name|guest\s*name|full\s*guest\s*name)$|attendee|invitee|person/i.test(clean(text));
+  const headerTable = text => /\b(table|tbl|table\s*(no|number|#)|seat(ing)?|group)\b/i.test(clean(text));
+  const isTableValue = value => {
+    const text = clean(value);
+    return /^(?:table|tbl|t)\s*[-#:]?\s*[A-Z]?\d+[A-Z]?$/i.test(text)
+      || /^\d{1,3}(?:\.0+)?[A-Z]?$/i.test(text)
+      || /^[A-Z]$/i.test(text)
+      || /^(top|head|vip|family|bride|groom|sweetheart)\s*table$/i.test(text);
+  };
+  const formatTable = value => {
+    const text = clean(value);
+    if (!text) return "";
+    if (/^\d{1,3}(?:\.0+)?[A-Z]?$/i.test(text)) return `Table ${text.replace(/\.0+/, "")}`;
+    if (/^t\s*\d/i.test(text)) return text.replace(/^t\s*/i, "Table ");
+    return text;
+  };
+
+  function makeGuest(name, table) {
+    name = clean(name).replace(/[|,;:\-–—]+$/, "");
+    table = formatTable(table);
+    if (!name || !table || headerName(name) || headerTable(table)) return null;
+    return { id: crypto.randomUUID(), name, table };
+  }
+
+  function recordsFromGrid(grid) {
+    const records = [];
+    let headerRow = -1, nameCol = -1, tableCol = -1;
+    for (let r = 0; r < Math.min(grid.length, 20); r++) {
+      const row = grid[r].map(clean);
+      const n = row.findIndex(headerName);
+      const t = row.findIndex(headerTable);
+      if (n >= 0 && t >= 0) { headerRow = r; nameCol = n; tableCol = t; break; }
+    }
+
+    if (headerRow >= 0) {
+      for (const row of grid.slice(headerRow + 1)) {
+        const guest = makeGuest(row[nameCol], row[tableCol]);
+        if (guest) records.push(guest);
+      }
+      return records;
+    }
+
+    for (const row0 of grid) {
+      const row = row0.map(clean).filter(Boolean);
+      if (row.length < 2) continue;
+      const tableIndex = row.findIndex(isTableValue);
+      if (tableIndex < 0) continue;
+      const table = row[tableIndex];
+      const name = row.filter((_, index) => index !== tableIndex).join(" ");
+      const guest = makeGuest(name, table);
+      if (guest) records.push(guest);
+    }
+    return records;
+  }
+
+  function parseLooseLine(line) {
+    const value = clean(line);
+    if (!value) return null;
+    if (headerName(value) || headerTable(value)) return null;
+
+    let match = value.match(/^(.+?)\s*(?:[-–—,:|]\s*)?\b(?:table|tbl|t)\b\s*#?\s*([A-Z]?\d+[A-Z]?)$/i);
+    if (match) return makeGuest(match[1], match[2]);
+
+    const cells = value.split(/\t+|\s{2,}|\s*[|;,]\s*/).map(clean).filter(Boolean);
+    if (cells.length >= 2) {
+      const index = cells.findIndex(isTableValue);
+      if (index >= 0) return makeGuest(cells.filter((_, i) => i !== index).join(" "), cells[index]);
+    }
+
+    // Handle a simple line such as “Ada Lovelace 12” or “Ada Lovelace Table 12”.
+    match = value.match(/^(.+?)\s+(\d{1,3}(?:\.0+)?[A-Z]?)$/i);
+    if (match) return makeGuest(match[1], match[2]);
+    return null;
+  }
+
+  function uniqueRecords(records) {
+    const seen = new Set();
+    return records.filter(item => {
+      const key = `${item.name.toLocaleLowerCase()}|${item.table.toLocaleLowerCase()}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }
+
+  async function readExcel(file) {
+    const workbook = XLSX.read(await file.arrayBuffer(), { type: "array", cellDates: false });
+    const records = [];
+    for (const sheetName of workbook.SheetNames) {
+      const sheet = workbook.Sheets[sheetName];
+      const grid = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, defval: "", blankrows: false });
+      const sheetRecords = recordsFromGrid(grid);
+      records.push(...sheetRecords);
+      if (!sheetRecords.length) {
+        for (const row of grid) {
+          const line = row.map(clean).filter(Boolean).join("\t");
+          const guest = parseLooseLine(line);
+          if (guest) records.push(guest);
+        }
+      }
+    }
+    return records;
+  }
+
+  async function readDocx(file) {
+    const result = await mammoth.convertToHtml({ arrayBuffer: await file.arrayBuffer() });
+    const doc = new DOMParser().parseFromString(result.value, "text/html");
+    const records = [];
+    for (const table of doc.querySelectorAll("table")) {
+      const grid = [...table.querySelectorAll("tr")].map(tr => [...tr.querySelectorAll("th,td")].map(cell => clean(cell.textContent)));
+      records.push(...recordsFromGrid(grid));
+    }
+    const paragraphs = [...doc.body.querySelectorAll("p,li")]
+      .filter(el => !el.closest("table"))
+      .map(el => clean(el.textContent))
+      .filter(Boolean);
+    for (const line of paragraphs) {
+      const guest = parseLooseLine(line);
+      if (guest) records.push(guest);
+    }
+    return uniqueRecords(records);
+  }
+
+  async function readPdf(file) {
+    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+    const records = [];
+    for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
+      const page = await pdf.getPage(pageNo);
+      const content = await page.getTextContent();
+      const grouped = new Map();
+      for (const item of content.items) {
+        if (!item.str?.trim()) continue;
+        const y = Math.round(item.transform[5] / 3) * 3;
+        const x = item.transform[4];
+        if (!grouped.has(y)) grouped.set(y, []);
+        grouped.get(y).push({ x, width: item.width || 0, text: clean(item.str) });
+      }
+      const lines = [...grouped.entries()].sort((a, b) => b[0] - a[0]).map(([, items]) => {
+        items.sort((a, b) => a.x - b.x);
+        let line = "", previousEnd = null;
+        for (const item of items) {
+          if (line && previousEnd !== null) line += item.x - previousEnd > 28 ? "\t" : " ";
+          line += item.text;
+          previousEnd = item.x + item.width;
+        }
+        return line;
+      });
+      records.push(...recordsFromGrid(lines.map(line => line.split("\t"))));
+      for (const line of lines) {
+        const guest = parseLooseLine(line);
+        if (guest) records.push(guest);
+      }
+    }
+    return uniqueRecords(records);
+  }
+
+  async function readFile(file) {
+    const ext = file.name.toLowerCase().split(".").pop();
+    if (ext === "xlsx" || ext === "xls") return readExcel(file);
+    if (ext === "docx") return readDocx(file);
+    if (ext === "pdf") return readPdf(file);
+    if (ext === "csv" || ext === "txt") {
+      const text = await file.text();
+      const lines = text.split(/\r?\n/).filter(line => line.trim());
+      const grid = lines.map(line => line.split(/\t+|,|;|\|/).map(clean));
+      const structured = recordsFromGrid(grid);
+      if (structured.length) return uniqueRecords(structured);
+      return uniqueRecords(lines.map(parseLooseLine).filter(Boolean));
+    }
+    throw new Error(`Unsupported file type: .${ext}`);
+  }
+
+  async function loadFiles(fileList) {
+    const files = [...fileList];
+    if (!files.length) return;
+    message.classList.remove("error");
+    message.textContent = `Reading ${files.length} file${files.length === 1 ? "" : "s"}…`;
+    let added = 0;
+    try {
+      for (const file of files) {
+        const found = await readFile(file);
+        guests.push(...found);
+        added += found.length;
+      }
+      guests = uniqueRecords(guests);
+      if (added) message.textContent = `Found ${added} guest/table entr${added === 1 ? "y" : "ies"}. Review or edit the extracted rows, then export to Excel.`;
+      else {
+        message.classList.add("error");
+        message.textContent = "No name and table pairs found. Check that the file has Name and Table column headings, or entries like “Alex Smith — Table 4”.";
+      }
+    } catch (error) {
+      message.classList.add("error");
+      message.textContent = `Could not read the file: ${error.message}`;
+    }
+    input.value = "";
+    render();
+  }
+
+  function render() {
+    summary.innerHTML = `<b>${guests.length} guest${guests.length === 1 ? "" : "s"}</b> · ${new Set(guests.map(g => g.table)).size} table assignment${new Set(guests.map(g => g.table)).size === 1 ? "" : "s"}`;
+    exportButton.disabled = guests.length === 0;
+    clearButton.disabled = guests.length === 0;
+    if (!guests.length) {
+      body.innerHTML = '<tr><td class="empty" colspan="3">Your extracted guest list will appear here. 🎊</td></tr>';
+      summary.innerHTML = "<b>0 guests</b> · Choose a file to begin";
+      return;
+    }
+    body.replaceChildren(...guests.map(guest => {
+      const tr = document.createElement("tr");
+      const nameCell = document.createElement("td");
+      const name = document.createElement("input");
+      name.value = guest.name;
+      name.setAttribute("aria-label", "Guest name");
+      name.addEventListener("input", () => { guest.name = name.value; });
+      nameCell.append(name);
+      const tableCell = document.createElement("td");
+      const table = document.createElement("input");
+      table.className = "table-cell";
+      table.value = guest.table;
+      table.setAttribute("aria-label", "Table number");
+      table.addEventListener("input", () => { guest.table = table.value; });
+      tableCell.append(table);
+      const removeCell = document.createElement("td");
+      const remove = document.createElement("button");
+      remove.className = "remove";
+      remove.type = "button";
+      remove.textContent = "×";
+      remove.setAttribute("aria-label", `Remove ${guest.name}`);
+      remove.addEventListener("click", () => { guests = guests.filter(g => g.id !== guest.id); render(); });
+      removeCell.append(remove);
+      tr.append(nameCell, tableCell, removeCell);
+      return tr;
+    }));
+  }
+
+  document.querySelector("#choose").addEventListener("click", () => input.click());
+  input.addEventListener("change", event => loadFiles(event.target.files));
+  drop.addEventListener("dragover", event => { event.preventDefault(); drop.classList.add("over"); });
+  drop.addEventListener("dragleave", () => drop.classList.remove("over"));
+  drop.addEventListener("drop", event => { event.preventDefault(); drop.classList.remove("over"); loadFiles(event.dataTransfer.files); });
+  clearButton.addEventListener("click", () => { guests = []; message.textContent = "List cleared. Choose another file when ready."; render(); });
+  exportButton.addEventListener("click", () => {
+    const exportRows = guests.filter(g => clean(g.name) && clean(g.table));
+    if (!exportRows.length) return;
+    const sheet = XLSX.utils.aoa_to_sheet([
+      ["Guest name", "Table number"],
+      ...exportRows.map(g => [clean(g.name), clean(g.table)])
+    ]);
+    sheet["!cols"] = [{ wch: 34 }, { wch: 22 }];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, sheet, "Guest Table List");
+    XLSX.writeFile(workbook, "GLS-guest-table-list.xlsx");
+  });
+</script>
+</body>
+</html>
