@@ -179,38 +179,137 @@
     return uniqueRecords(records);
   }
 
-  async function readPdf(file) {
-    const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
-    const records = [];
-    for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
-      const page = await pdf.getPage(pageNo);
-      const content = await page.getTextContent();
-      const grouped = new Map();
-      for (const item of content.items) {
-        if (!item.str?.trim()) continue;
-        const y = Math.round(item.transform[5] / 3) * 3;
-        const x = item.transform[4];
-        if (!grouped.has(y)) grouped.set(y, []);
-        grouped.get(y).push({ x, width: item.width || 0, text: clean(item.str) });
-      }
-      const lines = [...grouped.entries()].sort((a, b) => b[0] - a[0]).map(([, items]) => {
+ async function readPdf(file) {
+  const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const records = [];
+
+  for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
+    const recordsBeforePage = records.length;
+    const page = await pdf.getPage(pageNo);
+    const content = await page.getTextContent();
+    const grouped = new Map();
+
+    for (const item of content.items) {
+      if (!item.str?.trim()) continue;
+      const y = Math.round(item.transform[5] / 2) * 2;
+      const x = item.transform[4];
+
+      if (!grouped.has(y)) grouped.set(y, []);
+      grouped.get(y).push({
+        x,
+        width: item.width || 0,
+        text: clean(item.str)
+      });
+    }
+
+    const lines = [...grouped.entries()]
+      .sort((a, b) => b[0] - a[0])
+      .map(([y, items]) => {
         items.sort((a, b) => a.x - b.x);
-        let line = "", previousEnd = null;
-        for (const item of items) {
-          if (line && previousEnd !== null) line += item.x - previousEnd > 28 ? "\t" : " ";
-          line += item.text;
+        return { y, items };
+      });
+
+    // These PDFs put multiple seating lists side by side. Each heading gives
+    // the table assignment once; the rows beneath it contain names and phones.
+    const pageWidth = page.view[2] - page.view[0];
+    const middleX = page.view[0] + pageWidth / 2;
+    const sectionLabels = ["", ""];
+    let previousY = null;
+
+    const makeSectionLabel = items => {
+      const parts = items.map(item => item.text).filter(Boolean);
+      const raw = clean(parts.join(" "));
+      if (!raw) return "";
+
+      const number = raw.match(/\btable\s*([A-Z]?\d+[A-Z]?)\b/i);
+
+      if (number) {
+        const venue = clean(
+          raw
+            .replace(number[0], "")
+            .replace(/[|,:;–—-]+/g, " ")
+            .replace(/^\((.*)\)$/, "$1")
+        );
+
+        return `Table ${number[1]}${venue ? ` (${venue})` : ""}`;
+      }
+
+      if (parts.length > 1) {
+        return `${parts[0]} — ${parts.slice(1).join(" ")}`;
+      }
+
+      return raw;
+    };
+
+    for (const line of lines) {
+      const sectionStart =
+        previousY === null || previousY - line.y > 32;
+
+      if (sectionStart) {
+        for (let side = 0; side < 2; side++) {
+          const sideItems = line.items.filter(item =>
+            side === 0 ? item.x < middleX : item.x >= middleX
+          );
+
+          const label = makeSectionLabel(sideItems);
+          if (label) sectionLabels[side] = label;
+        }
+
+        previousY = line.y;
+        continue;
+      }
+
+      for (let side = 0; side < 2; side++) {
+        const sideItems = line.items
+          .filter(item => side === 0 ? item.x < middleX : item.x >= middleX)
+          .sort((a, b) => a.x - b.x);
+
+        const phoneIndex = sideItems.findIndex(
+          item => item.text.replace(/\D/g, "").length >= 7
+        );
+
+        if (phoneIndex < 1 || !sectionLabels[side]) continue;
+
+        const guestName = sideItems
+          .slice(0, phoneIndex)
+          .map(item => item.text)
+          .join(" ");
+
+        const guest = makeGuest(guestName, sectionLabels[side]);
+        if (guest) records.push(guest);
+      }
+
+      previousY = line.y;
+    }
+
+    // Keep support for PDFs that put a name and table assignment on each row.
+    if (records.length === recordsBeforePage) {
+      const textLines = lines.map(line => {
+        let text = "";
+        let previousEnd = null;
+
+        for (const item of line.items) {
+          if (text && previousEnd !== null) {
+            text += item.x - previousEnd > 28 ? "\t" : " ";
+          }
+          text += item.text;
           previousEnd = item.x + item.width;
         }
-        return line;
+
+        return text;
       });
-      records.push(...recordsFromGrid(lines.map(line => line.split("\t"))));
-      for (const line of lines) {
-        const guest = parseLooseLine(line);
+
+      records.push(...recordsFromGrid(textLines.map(line => line.split("\t"))));
+
+      for (const textLine of textLines) {
+        const guest = parseLooseLine(textLine);
         if (guest) records.push(guest);
       }
     }
-    return uniqueRecords(records);
   }
+
+  return uniqueRecords(records);
+}
 
   async function readFile(file) {
     const ext = file.name.toLowerCase().split(".").pop();
